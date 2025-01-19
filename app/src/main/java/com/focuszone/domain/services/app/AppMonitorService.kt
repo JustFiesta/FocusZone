@@ -57,21 +57,19 @@ class AppMonitorService : AccessibilityService() {
             }
         }
 
-        // Set up monitoring for new package if it's monitored
+        // Reset tracking and start monitoring new package
+        lastActivePackage = newPackage
+        activeAppStartTime = System.currentTimeMillis()
+
+        // Check if new package is monitored
         val monitoredApp = monitoredApps.find { it.id == newPackage }
         Log.d("AppMonitorService", "Found monitored app: $monitoredApp")
 
         if (monitoredApp != null) {
-            showUserMessageDialog()
-
             Log.d("AppMonitorService", "Starting to monitor app: ${monitoredApp.id}")
-            lastActivePackage = newPackage
-            activeAppStartTime = System.currentTimeMillis()
             startMonitoringApp(monitoredApp)
         } else {
-            Log.d("AppMonitorService", "New package is not monitored, resetting tracking")
-            lastActivePackage = null
-            activeAppStartTime = 0
+            Log.d("AppMonitorService", "New package is not monitored, clearing monitoring")
             handler.removeCallbacksAndMessages(null)
         }
     }
@@ -92,6 +90,15 @@ class AppMonitorService : AccessibilityService() {
     private fun startMonitoringApp(app: BlockedApp) {
         Log.d("AppMonitorService", "Starting to monitor app: ${app.id}")
         handler.removeCallbacksAndMessages(null)
+
+        // First check if we should block immediately based on previously saved time
+        if (app.isLimitSet && (app.currentTimeUsage ?: 0) >= app.limitMinutes!!) {
+            Log.d("AppMonitorService", "App ${app.id} already exceeded limit, blocking immediately")
+            blockApp(app.id)
+            return
+        }
+
+        // If not blocked, start monitoring
         checkAppTimeLimit(app)
     }
 
@@ -107,10 +114,13 @@ class AppMonitorService : AccessibilityService() {
         if (app.isLimitSet && totalTimeSpent >= app.limitMinutes!!) {
             Log.d("AppMonitorService", "Time limit exceeded for ${app.id}")
             blockApp(app.id)
+            showUserMessageDialog()
         } else {
             // Continue monitoring every second
             handler.postDelayed({
-                checkAppTimeLimit(app)
+                if (app.id == lastActivePackage) {
+                    checkAppTimeLimit(app)
+                }
             }, 1000)
         }
     }
@@ -122,40 +132,31 @@ class AppMonitorService : AccessibilityService() {
                 val newMonitoredApps = preferencesManager.getLimitedApps().filter { it.isLimitSet }
                 if (newMonitoredApps != monitoredApps) {
                     Log.d("AppMonitorService", "Detected changes in monitored apps")
-                    Log.d("AppMonitorService", "Old monitored apps: $monitoredApps")
-                    Log.d("AppMonitorService", "New monitored apps: $newMonitoredApps")
                     monitoredApps = newMonitoredApps
-
-                    // If current app is monitored, restart its monitoring with updated settings
-                    lastActivePackage?.let { currentPackage ->
-                        monitoredApps.find { it.id == currentPackage }?.let { app ->
-                            Log.d("AppMonitorService", "Restarting monitoring for current app: ${app.id}")
-                            startMonitoringApp(app)
-                        }
-                    }
+                    Log.d("AppMonitorService", "Updated monitored apps: $monitoredApps")
                 } else {
                     Log.d("AppMonitorService", "No changes detected in monitored apps")
                 }
-                handler.postDelayed(this, 5000)
+                handler.postDelayed(this, 5000) // Poll every 5 seconds
             }
         }, 5000)
     }
 
     private fun blockApp(packageName: String) {
-        Toast.makeText(this, getString(R.string.app_blocked), Toast.LENGTH_LONG).show()
-        Log.d("AppMonitorService", "Blocking app: $packageName")
-
-        // Save final time before blocking
+        // Save time before blocking
         monitoredApps.find { it.id == packageName }?.let { app ->
             Log.d("AppMonitorService", "Saving final time before blocking for: ${app.id}")
             saveTimeSpentInApp(app)
         }
 
-        performGlobalAction(GLOBAL_ACTION_HOME)
-        lastActivePackage = null
-        activeAppStartTime = 0
+        Log.d("AppMonitorService", "Blocking app: $packageName")
+        Toast.makeText(this, getString(R.string.app_blocked), Toast.LENGTH_LONG).show()
 
         NotificationManager(this).showBlockedAppNotification(packageName)
+        performGlobalAction(GLOBAL_ACTION_HOME)
+
+        lastActivePackage = null
+        activeAppStartTime = 0
     }
 
     private fun showUserMessageDialog() {
