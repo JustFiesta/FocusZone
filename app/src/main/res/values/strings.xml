@@ -121,7 +121,7 @@
     <string name="search_app">Searching application…</string>
     <string name="accessibility_service_description">Service for monitoring time spent in setted applications by FocusZone</string>
     <string name="app_logo">App Logo</string>
-    <string name="currently_blocked_apps">Currently Blocked Apps</string>
+    <string name="previously_blocked_apps">Previously Blocked Apps</string>
     <string name="app_icon">App Icon</string>
     <string name="app_blocked">"App %1$s has been blocked"</string>
     <string name="confirm">Confirm</string>

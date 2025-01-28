@@ -120,7 +120,7 @@
     <string name="search_app">Wyszukiwanie aplikacji…</string>
     <string name="accessibility_service_description">Usługa monitorowania czasu spędzonego w ustawionych aplikacjach przez FocusZone</string>
     <string name="app_logo">Logo aplikacji</string>
-    <string name="currently_blocked_apps">Aktualnie zablokowane aplikacje</string>
+    <string name="previously_blocked_apps">Poprzednio zablokowane aplikacje</string>
     <string name="app_icon">Ikona aplikacji</string>
     <string name="app_blocked">"Aplikacja $s została zablokowana"</string>
     <string name="confirm">Potwierdź</string>
