@@ -28,22 +28,22 @@ FocusZone to aplikacja mobilna na Androida, której celem jest pomoc użytkownik
 
 ## Panele / zakładki aplikacji 
 
-- Panel rejestracji
+- Panel rejestracji  
 ![img.png](img.png)
 
-- Panel logowania
+- Panel logowania  
 ![img_1.png](img_1.png)
 
-- Ekran główny
+- Ekran główny  
 ![img_2.png](img_2.png)
 
-- Ustawienia
+- Ustawienia  
 ![img_3.png](img_3.png)
 
-- Widok dostępnych aplikacji
+- Widok dostępnych aplikacji  
 ![img_4.png](img_4.png)
 
-- Edytuj limit dla aplikacji
+- Edytuj limit dla aplikacji  
 ![img_5.png](img_5.png)
 
 ## Baza danych
